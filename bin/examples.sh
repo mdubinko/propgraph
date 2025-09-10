@@ -1,0 +1,54 @@
+#!/bin/bash
+# Example runner for PropGraph development (uv-compatible)
+
+set -e  # Exit on error
+
+echo "=== PropGraph Examples ==="
+
+# Ensure virtual environment exists
+if [ ! -d ".venv" ]; then
+    echo "Creating virtual environment..."
+    uv venv
+fi
+
+# Run different examples based on arguments
+case "${1:-all}" in
+    "all")
+        echo "Running all examples..."
+        echo "--- Social Network Example ---"
+        uv run python3 examples/social_network.py
+        echo
+        echo "--- Knowledge Graph Example ---"
+        uv run python3 examples/knowledge_graph.py
+        echo
+        echo "--- Dependency Analysis Example ---"
+        uv run python3 examples/dependency_analysis.py
+        ;;
+    "social")
+        echo "Running social network example..."
+        uv run python3 examples/social_network.py
+        ;;
+    "knowledge")
+        echo "Running knowledge graph example..."
+        uv run python3 examples/knowledge_graph.py
+        ;;
+    "deps")
+        echo "Running dependency analysis example..."
+        uv run python3 examples/dependency_analysis.py
+        ;;
+    "list")
+        echo "Available examples:"
+        find examples/ -name "*.py" | sed 's/examples\//  /' | sed 's/\.py//'
+        ;;
+    *)
+        echo "Usage: $0 [all|social|knowledge|deps|list]"
+        echo "  all       - Run all examples (default)"
+        echo "  social    - Run social network example"
+        echo "  knowledge - Run knowledge graph example" 
+        echo "  deps      - Run dependency analysis example"
+        echo "  list      - List available examples"
+        exit 1
+        ;;
+esac
+
+echo "✅ Examples completed!"

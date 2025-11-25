@@ -124,7 +124,7 @@ class NodeIterator:
                 self.query_spec.steps,
             )
 
-        logger = get_logger()
+        logger = get_logger("query")
         start_time = time.time()
 
         affected_count = self.deleter(self.query_spec)
@@ -203,7 +203,7 @@ class EdgeIterator:
                 self.query_spec.steps,
             )
 
-        logger = get_logger()
+        logger = get_logger("query")
         start_time = time.time()
 
         affected_count = self.deleter(self.query_spec)

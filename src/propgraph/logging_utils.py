@@ -23,6 +23,15 @@ def summary(self: logging.Logger, message: str, *args: Any, **kwargs: Any) -> No
 logging.Logger.summary = summary  # type: ignore
 
 
+def sql(self: logging.Logger, query: str, params: Any = None, elapsed_ms: Optional[float] = None) -> None:
+    """Log SQL queries at DEBUG level with parameters and timing"""
+    log_sql_query(query, params, elapsed_ms, component=self.name.split('.')[-1])
+
+
+# Add sql method to Logger class
+logging.Logger.sql = sql  # type: ignore
+
+
 def get_logger(name: str) -> logging.Logger:
     """
     Get a PropGraph logger that inherits from application configuration.

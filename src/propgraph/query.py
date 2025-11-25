@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable, List, Literal, Optional
 
-from .logger import get_logger
+from .logging_utils import get_logger, log_query_operation, log_error_with_context
 
 if TYPE_CHECKING:
     from .core import EdgeProxy, NodeProxy

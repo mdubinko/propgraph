@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Development utilities for PropGraph (uv-compatible)
 
 set -e  # Exit on error

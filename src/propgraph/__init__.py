@@ -38,6 +38,7 @@ from .exceptions import (
     ValidationError,
 )
 from .query import EdgeIterator, NodeIterator, QuerySpec, QueryStep
+from .logging_utils import SUMMARY, configure_for_tests, get_logger, set_log_level
 
 __version__ = "0.1.0"
 __all__ = [
@@ -59,4 +60,9 @@ __all__ = [
     "IntegrityError",
     "TransactionError",
     "ValidationError",
+    # Logging utilities
+    "SUMMARY",
+    "configure_for_tests",
+    "get_logger",
+    "set_log_level",
 ]

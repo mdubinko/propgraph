@@ -61,6 +61,76 @@ with PropertyGraph() as graph:
     print(f"Deleted {deleted} inactive users")
 ```
 
+## Logging Configuration
+
+PropGraph uses Python's standard logging module and respects your application's logging configuration. As a library, PropGraph does not configure handlers or formatters - it only emits log messages that your application controls.
+
+### Application Setup
+
+Configure PropGraph logging through your application's logging setup:
+
+```python
+import logging.config
+
+# Example dictConfig for applications using PropGraph
+LOGGING_CONFIG = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+        }
+    },
+    'loggers': {
+        'propgraph': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'propgraph.storage': {  # SQL operations
+            'level': 'WARNING',   # Reduce verbosity
+        },
+        'propgraph.query': {    # Query operations
+            'level': 'INFO',
+        },
+    }
+}
+
+logging.config.dictConfig(LOGGING_CONFIG)
+```
+
+### Log Levels
+
+PropGraph provides structured logging with these levels:
+
+- **`SUMMARY` (25)** - Token-efficient emoji messages for key operations
+- **`INFO`** - Standard operational messages
+- **`DEBUG`** - Detailed SQL queries and performance data
+- **`WARNING/ERROR`** - Issues and exceptions
+
+```python
+from propgraph import PropertyGraph, SUMMARY
+
+# Quick setup for testing/development
+import logging
+logging.getLogger('propgraph').setLevel(SUMMARY)
+
+# Your PropertyGraph operations will now emit concise emoji logs
+with PropertyGraph() as graph:
+    user = graph.add_node("User", name="Alice")  # 💾 INSERT (2.1ms)
+```
+
+### Component Loggers
+
+PropGraph uses hierarchical loggers for different components:
+
+- `propgraph.storage` - Database operations and SQL queries
+- `propgraph.query` - Query execution and results
+- `propgraph.performance` - Slow operation warnings
+- `propgraph.stats` - Graph statistics and metrics
+
+Enable SQL debugging by setting the storage logger to DEBUG level - PropGraph will automatically log all SQL queries with parameters and timing.
+
 ## Core Features
 
 ### Basic CRUD Operations
@@ -156,10 +226,10 @@ senior_engineers = (graph.nodes("User")
 
 # Execute only when iterating
 for engineer in senior_engineers:
-    print(f"Senior Engineer: {engineer.prop('name')}")
+    print(f"Senior Engineer: {engineer.props['name']}")
 
-# Or get count without full iteration
-count = len(list(senior_engineers.limit(0)))  # Efficient counting
+# Get a count of the results
+count = len(list(senior_engineers))
 ```
 
 ## More Examples

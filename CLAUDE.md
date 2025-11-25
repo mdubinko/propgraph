@@ -248,6 +248,29 @@ version = graph.prop("schema_version")  # Always available
 created = graph.prop("created_at")      # Timestamp when graph was created
 ```
 
+### Schema Inspection
+
+```python
+# List all node types in the graph (sorted alphabetically)
+node_types = graph.node_types()  # ['Category', 'Product', 'User']
+
+# List all edge types in the graph (sorted alphabetically)
+edge_types = graph.edge_types()  # ['BELONGS_TO', 'FRIENDS', 'PURCHASED']
+
+# Get counts
+node_count = graph.node_count()
+edge_count = graph.edge_count()
+
+# Use for schema validation or exploration
+if 'User' in graph.node_types():
+    users = graph.nodes('User')
+
+# Efficient discovery of relationship patterns
+for edge_type in graph.edge_types():
+    count = len(list(graph.edges(edge_type)))
+    print(f"{edge_type}: {count} relationships")
+```
+
 ## Query Architecture
 
 The PropGraph uses a declarative query system with lazy evaluation:

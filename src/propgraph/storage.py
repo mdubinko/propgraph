@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Any, Literal, Optional, Union
 
-from .logger import get_logger
+from .logging_utils import get_logger, log_storage_operation, log_sql_query, log_error_with_context
 
 
 def deprecated(reason: str):
@@ -103,7 +103,7 @@ class StorageLayer:
     def __init__(self, db_path: Optional[str] = None):
         # None -> in-memory, "" -> temp file (auto-deleted), "path" -> persistent file
         self.db_path = ":memory:" if db_path is None else db_path
-        self.logger = get_logger()
+        self.logger = get_logger("storage")
 
         start_time = time.time()
         self.conn = sqlite3.connect(self.db_path)
@@ -744,6 +744,16 @@ class StorageLayer:
         """Count total number of edges"""
         cursor = self.__execute("SELECT COUNT(*) FROM rel")
         return cursor.fetchone()[0]
+
+    def _list_node_types(self) -> list[str]:
+        """List all distinct node types in the graph"""
+        cursor = self.__execute("SELECT DISTINCT type FROM resource ORDER BY type")
+        return [row[0] for row in cursor.fetchall()]
+
+    def _list_edge_types(self) -> list[str]:
+        """List all distinct edge types in the graph"""
+        cursor = self.__execute("SELECT DISTINCT type FROM rel ORDER BY type")
+        return [row[0] for row in cursor.fetchall()]
 
     def _delete_node(self, node_id: int):
         """Delete a node and all its properties and edges"""

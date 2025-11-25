@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Test runner for PropGraph development (uv-compatible)
 
 set -e  # Exit on error

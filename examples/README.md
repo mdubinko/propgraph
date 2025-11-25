@@ -9,8 +9,9 @@ All examples are standalone Python scripts that can be run directly:
 ```bash
 # From the project root directory
 python3 examples/social_network.py
-python3 examples/knowledge_graph.py  
+python3 examples/knowledge_graph.py
 python3 examples/dependency_analysis.py
+python3 examples/schema_inspection.py
 ```
 
 ## Examples Overview
@@ -37,6 +38,14 @@ Illustrates code dependency tracking with:
 - Dependency analysis and metrics
 - Bulk cleanup of temporary files
 - Most-imported file analysis
+
+### 4. Schema Inspection (`schema_inspection.py`)
+Demonstrates efficient schema discovery and analysis with:
+- Listing all node types and edge types in the graph
+- Schema validation patterns
+- Relationship pattern analysis
+- Performance characteristics (single SQL query per operation)
+- Usage patterns for graph exploration
 
 ## Key Patterns Demonstrated
 

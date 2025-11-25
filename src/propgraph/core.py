@@ -21,7 +21,7 @@ from .exceptions import (
     PropertyValueError,
     QueryExecutionError,
 )
-from .logger import SUMMARY, get_log_level, get_logger, set_log_level
+from .logging_utils import SUMMARY, get_log_level, get_logger, set_log_level, log_error_with_context
 from .query import EdgeIterator, NodeIterator, QuerySpec, QueryStep
 from .storage import StorageLayer, TypeMapper, deprecated
 
@@ -358,7 +358,7 @@ class PropertyGraph:
 
         Example:
             import logging
-            from propgraph.logger import SUMMARY
+            from propgraph.logging_utils import SUMMARY
 
             graph.set_log_level(logging.DEBUG)  # Show all SQL queries
             graph.set_log_level(SUMMARY)        # Token-efficient summaries only
@@ -410,6 +410,22 @@ class PropertyGraph:
             Number of edges as int
         """
         return self._storage._count_edges()
+
+    def node_types(self) -> list[str]:
+        """Get list of all distinct node types in the graph
+
+        Returns:
+            List of node type strings, sorted alphabetically
+        """
+        return self._storage._list_node_types()
+
+    def edge_types(self) -> list[str]:
+        """Get list of all distinct edge types in the graph
+
+        Returns:
+            List of edge type strings, sorted alphabetically
+        """
+        return self._storage._list_edge_types()
 
     def to_json(self, limit: int = 10) -> dict:
         """Return graph summary as JSON-serializable dictionary

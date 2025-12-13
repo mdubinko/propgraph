@@ -169,8 +169,39 @@ class PropertyGraph:
         # Automatically closed when exiting with block
     """
 
-    def __init__(self, db_path: Optional[str] = None) -> None:
-        self._storage = StorageLayer(db_path)
+    def __init__(
+        self, db_path: Optional[str] = None, allowed_base_dir: Optional[str] = None
+    ) -> None:
+        """Initialize PropertyGraph
+
+        Args:
+            db_path: Path to database file. Special values:
+                - None: in-memory database (default)
+                - "": temporary file (auto-deleted)
+                - "/path/to/file.db": persistent database file
+            allowed_base_dir: Optional directory to restrict database files to.
+                If specified, db_path must be within this directory.
+                Use for additional security when paths come from untrusted input.
+
+        Raises:
+            ValueError: If db_path contains path traversal or is outside allowed_base_dir
+
+        Security Note:
+            Database paths are validated to prevent directory traversal attacks.
+            Paths containing ".." are rejected. For additional security with
+            untrusted input, specify allowed_base_dir to restrict file locations.
+
+        Example:
+            # In-memory database (no file)
+            graph = PropertyGraph()
+
+            # Persistent database
+            graph = PropertyGraph("my_graph.db")
+
+            # Restricted to specific directory (secure mode)
+            graph = PropertyGraph("user_123.db", allowed_base_dir="/var/lib/myapp")
+        """
+        self._storage = StorageLayer(db_path, allowed_base_dir)
         self._props = PropertyDict(self)
 
     @property
@@ -426,6 +457,68 @@ class PropertyGraph:
             List of edge type strings, sorted alphabetically
         """
         return self._storage._list_edge_types()
+
+    def resource_stats(self) -> dict:
+        """Get resource usage statistics for the graph
+
+        Returns dictionary with database size, entity counts, and property counts.
+        Useful for monitoring resource consumption and enforcing limits.
+
+        Returns:
+            Dictionary with keys:
+            - db_size_bytes: Database file size in bytes (0 for in-memory)
+            - db_size_mb: Database file size in MB (0 for in-memory)
+            - node_count: Total number of nodes
+            - edge_count: Total number of edges
+            - node_property_count: Total properties across all nodes
+            - edge_property_count: Total properties across all edges
+            - graph_property_count: Graph-level property count
+            - total_entities: Sum of nodes and edges
+            - total_properties: Sum of all properties
+
+        Example:
+            stats = graph.resource_stats()
+            print(f"Database size: {stats['db_size_mb']:.2f} MB")
+            print(f"Total entities: {stats['total_entities']}")
+
+            # Enforce limits
+            if stats['node_count'] > MAX_NODES:
+                raise ResourceLimitError("Too many nodes")
+        """
+        import os
+
+        # Get database file size
+        db_size = 0
+        if self._storage.db_path != ":memory:":
+            try:
+                db_size = os.path.getsize(self._storage.db_path)
+            except (OSError, FileNotFoundError):
+                db_size = 0
+
+        # Get entity counts
+        node_count = self.node_count()
+        edge_count = self.edge_count()
+
+        # Get property counts
+        cursor = self._storage._StorageLayer__execute("SELECT COUNT(*) FROM resource_props")
+        node_prop_count = cursor.fetchone()[0]
+
+        cursor = self._storage._StorageLayer__execute("SELECT COUNT(*) FROM rel_props")
+        edge_prop_count = cursor.fetchone()[0]
+
+        graph_prop_count = self._count_properties()
+
+        return {
+            "db_size_bytes": db_size,
+            "db_size_mb": db_size / (1024 * 1024),
+            "node_count": node_count,
+            "edge_count": edge_count,
+            "node_property_count": node_prop_count,
+            "edge_property_count": edge_prop_count,
+            "graph_property_count": graph_prop_count,
+            "total_entities": node_count + edge_count,
+            "total_properties": node_prop_count + edge_prop_count + graph_prop_count,
+        }
 
     def to_json(self, limit: int = 10) -> dict:
         """Return graph summary as JSON-serializable dictionary

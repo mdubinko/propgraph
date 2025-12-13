@@ -16,6 +16,14 @@ This file tracks development tasks and improvements for the PropGraph library.
 - [ ] Investigate transaction isolation levels
 - [ ] Add database integrity checks
 
+### Security Features
+- [ ] **Encryption at rest** - Add optional database encryption on create/load (SQLCipher integration)
+- [ ] **Database-layer access control** - Optional row-level security and permissions system
+- [x] **Path validation** - Validate db_path parameter to prevent directory traversal (COMPLETED)
+- [ ] **Input validation** - Add validation for node_type, edge_type (max length, character restrictions)
+- [ ] **Resource limits** - Configurable limits for nodes, edges, property sizes
+- [ ] **Security logging** - Audit trail for data modifications and access patterns
+
 ## Medium Priority
 
 ### Performance & Optimization

@@ -61,6 +61,10 @@ with PropertyGraph() as graph:
     print(f"Deleted {deleted} inactive users")
 ```
 
+## Security Note
+
+PropGraph is designed for **trusted environments**. Before production use with sensitive data or untrusted input, review [SECURITY_AUDIT.md](SECURITY_AUDIT.md) for security considerations including path validation, encryption options, and resource monitoring. Use `graph.resource_stats()` to monitor database size and entity counts.
+
 ## Logging Configuration
 
 PropGraph uses Python's standard logging module and respects your application's logging configuration. As a library, PropGraph does not configure handlers or formatters - it only emits log messages that your application controls.
@@ -266,6 +270,9 @@ The main interface to the graph database.
 #### Graph Operations
 - `node_count() -> int` - Total number of nodes
 - `edge_count() -> int` - Total number of edges
+- `node_types() -> list[str]` - List all distinct node types
+- `edge_types() -> list[str]` - List all distinct edge types
+- `resource_stats() -> dict` - Get database size and entity counts (for monitoring)
 - `props` - Dict-like property interface (see PropertyDict below)
 
 ### NodeProxy Class

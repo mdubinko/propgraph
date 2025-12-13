@@ -100,9 +100,10 @@ class TypeMapper:
 class StorageLayer:
     """Internal storage layer - handles all SQL operations"""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: Optional[str] = None, allowed_base_dir: Optional[str] = None):
         # None -> in-memory, "" -> temp file (auto-deleted), "path" -> persistent file
-        self.db_path = ":memory:" if db_path is None else db_path
+        raw_path = ":memory:" if db_path is None else db_path
+        self.db_path = self._validate_db_path(raw_path, allowed_base_dir)
         self.logger = get_logger("storage")
 
         start_time = time.time()
@@ -122,6 +123,61 @@ class StorageLayer:
         else:
             elapsed_ms = (time.time() - start_time) * 1000
             self.logger.info(f"📊 Database connected ({elapsed_ms:.1f}ms): {self.db_path}")
+
+    def _validate_db_path(self, db_path: str, allowed_base_dir: Optional[str] = None) -> str:
+        """Validate database path to prevent directory traversal attacks
+
+        Args:
+            db_path: Path to validate
+            allowed_base_dir: Optional base directory to restrict paths to
+
+        Returns:
+            Validated path (absolute path for files, unchanged for special paths)
+
+        Raises:
+            ValueError: If path contains traversal attempts or is outside allowed directory
+
+        Security Notes:
+            - Special SQLite paths (":memory:", "") are allowed unchanged
+            - File paths are resolved to absolute paths
+            - Path traversal sequences ("../") are detected and rejected
+            - Optional restriction to a specific base directory
+        """
+        from pathlib import Path
+
+        # Special SQLite paths are allowed unchanged
+        if db_path in [":memory:", ""]:
+            return db_path
+
+        # Convert to Path object and resolve to absolute path
+        # This normalizes the path and resolves symlinks
+        try:
+            path_obj = Path(db_path).resolve()
+        except (OSError, RuntimeError) as e:
+            raise ValueError(f"Invalid database path: {e}")
+
+        # Check for path traversal attempts in the original path
+        # Even though resolve() normalizes, we check the input for security
+        if ".." in db_path:
+            raise ValueError(
+                f"Path traversal detected in database path: {db_path}. "
+                "Use absolute paths or paths without '..' sequences."
+            )
+
+        # If base directory is specified, ensure path is within it
+        if allowed_base_dir is not None:
+            base_path = Path(allowed_base_dir).resolve()
+
+            # Check if the resolved path is within the base directory
+            try:
+                path_obj.relative_to(base_path)
+            except ValueError:
+                raise ValueError(
+                    f"Database path must be within {base_path}. "
+                    f"Attempted path: {path_obj}"
+                )
+
+        return str(path_obj)
 
     def __execute(self, sql: str, params: Any = None):
         """Execute SQL with logging"""
